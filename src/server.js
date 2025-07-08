@@ -1,21 +1,45 @@
 const WebSocket = require('ws');
 
+const User = require('./user');
+
 const wss = new WebSocket.Server({ port: 8080 });
 
-const pendingMessages = new Map();
-const retryDelay = 3000;
 test = true;
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
 
+  verified = false;
+  deviceId = '';
+  _lastId = '';
   ws.on('message', (message) => {
     const data = JSON.parse(message);
-    
+    if(data.id == null || data.type == null) return;
+    if(_lastId == data.id){
+      ws.send(JSON.stringify({ type: 'confirmation', id: _lastId}));
+      return;
+    }
+    _lastId = data.id;
+    if(!verified){
+      if(data.type === 'identification' && data.id != null && data.id != ''){
+        verified = true;
+        deviceId = data.id
+        try{
+          new User(ws, data.id);
+        }catch{
+          console.log('NO USER INIT')
+        }
+      }else{
+        ws.send(JSON.stringify({ type: 'confirmation', id: data.id}));
+        ws.close();
+      }
+    }
+
+
     if (data.type === 'confirmation') {
       handleConfirmation(data.id);
     } else {
-      handleIncomingMessage(ws, data);
+      handleIncomingMessage(data, deviceId);
       ws.send(JSON.stringify({ type: 'confirmation', id: data.id}));
     }
   });
@@ -25,36 +49,16 @@ wss.on('connection', (ws) => {
   });
 });
 
-function handleIncomingMessage(ws, data) {
-  console.log('Received message:', data.data);
-  // Here you can process the incoming message as needed
-  // For example, you can send a response back to the client
-  if(test){
-    test = false;
-    sendMessageWithRetry(ws, {data : (data.data + " is a good example for a server response to a different client")})
-  }
-  
-}
-
-function sendMessageWithRetry(ws, message) {
-  const messageId = Date.now().toString();
-  const messageWithId = { ...message, id: messageId };
-
-  pendingMessages.set(messageId, messageWithId);
-  ws.send(JSON.stringify(messageWithId));
-
-  setTimeout(() => {
-    if (pendingMessages.has(messageId)) {
-      console.log('Resending message:', messageWithId);
-      ws.send(JSON.stringify(messageWithId));
-    }
-  }, retryDelay);
+function handleIncomingMessage(data, id) {
+  if(!User.users.has(id)) return;
+  userById = User.users.get(id);
+  userById.handleMessage(data);
 }
 
 function handleConfirmation(messageId) {
-  if (pendingMessages.has(messageId)) {
+  if (User.pendingMessages.has(messageId)) {
     console.log('Confirmation received for message ID:', messageId);
-    pendingMessages.delete(messageId);
+    User.pendingMessages.delete(messageId);
   }
 }
 
