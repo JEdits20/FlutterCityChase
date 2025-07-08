@@ -17,17 +17,15 @@ class Lobby {
   }
 
   join(user) {
-    this.usernames.push(user.getUsername());
-    user.sendMessageWithRetry(this.usernames, "userList");
+    if(this.usernames.findIndex(user) == -1) this.usernames.push(user.getUsername());
     setTimeout(() => {
         user.sendMessageWithRetry(this.usernames, "userList");
-    }, 500);
+    }, 200);
     this.users.forEach(u => {
       console.log(u.getUsername());
       setTimeout(() => {
         u.sendMessageWithRetry(user.getUsername(), 'userAdd');
-      }, 500);
-      u.sendMessageWithRetry(user.getUsername(), 'userAdd');
+      }, 200);
     });
     this.users.push(user);
   }
