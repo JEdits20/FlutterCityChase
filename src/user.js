@@ -1,3 +1,4 @@
+const WebSocket = require('ws')
 const Lobby = require("./lobby");
 const retryDelay = 3000;
 
@@ -23,6 +24,12 @@ class User {
         this.sendCache();
         setTimeout(() => {
         this.sendMessageWithRetry(Lobby.getLobbyNames(), 'list');
+        setTimeout(() => {
+        this.sendMessageWithRetry(Lobby.getLobbyNames(), 'list');
+        setTimeout(() => {
+        this.sendMessageWithRetry(Lobby.getLobbyNames(), 'list');
+      }, 500);
+      }, 500);
       }, 500);
         throw new Error(`User overridden.`);
         
