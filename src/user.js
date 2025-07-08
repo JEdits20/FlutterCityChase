@@ -26,9 +26,6 @@ class User {
         this.sendMessageWithRetry(Lobby.getLobbyNames(), 'list');
         setTimeout(() => {
         this.sendMessageWithRetry(Lobby.getLobbyNames(), 'list');
-        setTimeout(() => {
-        this.sendMessageWithRetry(Lobby.getLobbyNames(), 'list');
-      }, 500);
       }, 500);
       }, 500);
         throw new Error(`User overridden.`);
@@ -77,10 +74,7 @@ class User {
   }
 
   sendMessageWithRetry(message, type = 'update') {
-    if(this.ws == null){
-      if(this.lobby != null) this.cache.push(message);
-      return;
-    }
+    console.log(message)
     if(this.ws.readyState != WebSocket.OPEN){
       if(this.lobby != null) this.cache.push(message);
       return;

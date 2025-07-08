@@ -19,8 +19,14 @@ class Lobby {
   join(user) {
     this.usernames.push(user.getUsername());
     user.sendMessageWithRetry(this.usernames, "userList");
+    setTimeout(() => {
+        user.sendMessageWithRetry(this.usernames, "userList");
+    }, 500);
     this.users.forEach(u => {
       console.log(u.getUsername());
+      setTimeout(() => {
+        u.sendMessageWithRetry(user.getUsername(), 'userAdd');
+      }, 500);
       u.sendMessageWithRetry(user.getUsername(), 'userAdd');
     });
     this.users.push(user);
